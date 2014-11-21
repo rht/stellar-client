@@ -5,8 +5,10 @@ var sc = angular.module('stellarClient');
 
 var cache = {};
 
-sc.service('session', function($rootScope, $http, $timeout, StellarNetwork, Wallet, contacts, UserPrivateInfo) {
-  var Session = function() {};
+sc.service('session', function($rootScope, $http, $timeout, $q, StellarNetwork, Wallet, contacts, UserPrivateInfo) {
+  var Session = function() {
+    this.waitingForUserInfo = $q.defer();
+  };
 
   Session.prototype.get = function(name){ return cache[name]; };
   Session.prototype.put = function(name, value){ 
@@ -85,12 +87,13 @@ sc.service('session', function($rootScope, $http, $timeout, StellarNetwork, Wall
     UserPrivateInfo.load(this.get('username'), this.get('wallet').keychainData.updateToken)
       .then(function (user) {
         self.put('userPrivateInfo', user);
-      })
-      .then(function () {
+        self.waitingForUserInfo.resolve(user);
         $rootScope.$broadcast('userLoaded');
-      })
-      .then(function () {
+
         self.identifyToAnalytics();
+      })
+      .catch(function(err) {
+        self.waitingForUserInfo.reject(err);
       });
 
     // check for the most up to date fairy address
@@ -163,6 +166,10 @@ sc.service('session', function($rootScope, $http, $timeout, StellarNetwork, Wall
 
   Session.prototype.getUser = function () {
     return this.get('userPrivateInfo');
+  };
+
+  Session.prototype.getUserInfo = function() {
+    return this.waitingForUserInfo.promise;
   };
 
   Session.prototype.identifyToAnalytics = function() {
