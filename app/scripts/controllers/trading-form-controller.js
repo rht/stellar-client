@@ -7,7 +7,7 @@ sc.controller('TradingFormCtrl', function($scope, $state, session, singletonProm
   $scope.currencies = [{currency:"STR"}].concat(gatewayCurrencies);
   $scope.currencyNames = _.uniq(_.pluck($scope.currencies, 'currency'));
   var MAX_STR_AMOUNT = new BigNumber(2).toPower(64).minus(1).dividedBy('1000000'); // (2^64-1)/10^6
-  var MAX_CREDIT_PRECISION = 14; // stellard credits supports up to 15 significant digits
+  var MAX_CREDIT_PRECISION = 16; // stellard credits supports up to 16 significant digits
 
 
   $scope.changeBaseCurrency = function(newCurrency) {
